@@ -11,7 +11,7 @@ app = FastAPI()
 @app.post("/products", response_model=ProductResponse, status_code=201)
 async def create_product(product: ProductCreate):
     doc = product.dict()
-    result = products_collection.insert_one(doc)
+    result = await products_collection.insert_one(doc)
     return {"id": str(result.inserted_id)}
 
 @app.get("/products", response_model=ProductListResponse)
@@ -22,7 +22,7 @@ async def list_products(name: Optional[str] = None, size: Optional[str] = None, 
     if size:
         query["sizes.size"] = size
 
-    cursor = products_collection.find(query).skip(offset).limit(limit)
+    cursor = await products_collection.find(query).skip(offset).limit(limit)
     data = []
     for p in cursor:
         data.append({"id": str(p["_id"]), "name": p["name"], "price": p["price"]})
@@ -38,12 +38,12 @@ async def list_products(name: Optional[str] = None, size: Optional[str] = None, 
 
 @app.post("/orders", response_model=ProductResponse, status_code=201)
 async def create_order(order: OrderCreate):
-    result = orders_collection.insert_one(order.dict())
+    result = await orders_collection.insert_one(order.dict())
     return {"id": str(result.inserted_id)}
 
 @app.get("/orders/{user_id}", response_model=OrderListResponse)
 async def get_orders(user_id: str, limit: int = 10, offset: int = 0):
-    cursor = orders_collection.find({"userId": user_id}).skip(offset).limit(limit)
+    cursor = await orders_collection.find({"userId": user_id}).skip(offset).limit(limit)
     data = []
     for order in cursor:
         total = 0
